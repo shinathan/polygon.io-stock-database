@@ -12,8 +12,8 @@ import pandas as pd
 import numpy as np
 import os
 
-POLYGON_DATA_PATH = "C:/Users/Nathan/Desktop/Algotrading/Code/data/polygon/"
-SHARADAR_DATA_PATH = "C:/Users/Nathan/Desktop/Algotrading/Code/data/sharadar/"
+POLYGON_DATA_PATH = "../data/polygon/"
+SHARADAR_DATA_PATH = "../data/sharadar/"
 
 
 def datetime_to_unix(dt):
@@ -33,18 +33,23 @@ def datetime_to_unix(dt):
         raise Exception("No datetime object specified.")
 
 
-def download_m1_raw_data(ticker, from_, to, columns, path, client, to_parquet=False):
+def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, columns=['open', 'high', 'low', 'close', 'volume']):
+    """Downloads raw 1-minute data from Polygon, converts to ET-naive time and store to either a csv file or Parquet file. Includes extended hours.
+
+    Args:
+        ticker (str): _description_
+        from_ (date/datetime): the starting date(time)
+        to (date/datetime): end ending date(time)
+        path (str): where to store the result. If None is specified, the function returns the df instead.
+        client (RESTClient): the client object
+        to_parquet (bool, optional): whether to store in Parquet files. Defaults to csv.
+        columns (list): list of column names to keep
+
+    Returns:
+        DataFrame: the data
     """
-    Downloads raw 1-minute data from Polygon, converts to ET-naive time and store to either a
-    csv file or Parquet file. Includes extended hours.
-        ticker : str
-        from_ : datetime or date object
-        to : datetime or date object
-        columns : list of column names to keep
-        path : str, if None is specified, the function returns the df instead.
-        to_parquet : bool, if
-        client : the RESTClient object
-    """
+    
+    # If no time specified, fill in the start of premarket/end of postmarket
     if all(isinstance(value, date) for value in (from_, to)):
         start_unix = datetime_to_unix(dt=datetime.combine(from_, time(4)))
         end_unix = datetime_to_unix(dt=datetime.combine(to, time(20)))
@@ -92,10 +97,14 @@ def download_m1_raw_data(ticker, from_, to, columns, path, client, to_parquet=Fa
 
 
 @lru_cache
-def get_market_hours():
-    """Retrieves the market hours"""
+def get_market_calendar():
+    """Retrieves the market hours
+
+    Returns:
+        DataFrame: the index contains Date objects and the columns Time objects.
+    """
     market_hours = pd.read_csv(
-        POLYGON_DATA_PATH + "../other/market_hours.csv", index_col=0
+        POLYGON_DATA_PATH + "../market/market_calendar.csv", index_col=0
     )
     market_hours.index = pd.to_datetime(market_hours.index).date
     market_hours.premarket_open = pd.to_datetime(
@@ -120,33 +129,45 @@ def get_market_minutes():
 
 
 def get_market_dates():
+    """Get a list of market days from the market calendar
+
+    Returns:
+        list: list of Date objects
     """
-    Get a list of trading dates.
-    """
-    market_hours = get_market_hours()
+    market_hours = get_market_calendar()
     return list(market_hours.index)
 
 
+
 def first_trading_date_after_equal(dt):
-    """
-    Gets first trading day after or equal to input date. Return the input if out of range.
+    """Gets first trading day after or equal to input date. Return the input if out of range.
+
+    Args:
+        dt (Date): Date object to compare
+
+    Returns:
+        Date: the trading date
     """
     trading_days = get_market_dates()
     if dt > trading_days[-1]:
-        # print("Out of range! Returning input.")
+        print("Out of range! Returning input.")
         return dt
     while dt not in trading_days:
         dt = dt + timedelta(days=1)
     return dt
 
-
 def last_trading_date_before_equal(dt):
-    """
-    Gets last trading day before or equal to input date. Return the input if out of range.
+    """Gets last trading day before or equal to input date. Return the input if out of range.
+
+    Args:
+        dt (Date): Date object to compare
+
+    Returns:
+        Date: the trading date
     """
     trading_days = get_market_dates()
     if dt < trading_days[-1]:
-        # print("Out of range! Returning input.")
+        print("Out of range! Returning input.")
         return dt
     while dt not in trading_days:
         dt = dt - timedelta(days=1)
@@ -161,7 +182,7 @@ def remove_extended_hours(bars):
     bars = bars.between_time("9:30", "15:59").copy()
 
     # Remove early close post-market bars
-    market_hours = get_market_hours()
+    market_hours = get_market_calendar()
     early_closes = market_hours[market_hours["regular_close"] != time(15, 59)]
     for date_, early_close in early_closes.iterrows():
         bars = bars[
