@@ -200,7 +200,7 @@ def get_tickers(v=5):
     Retrieve the ticker list. Default is 5.
     """
     tickers = pd.read_csv(
-        f"../../../data/tickers_v{v}.csv",
+        f"../data/tickers_v{v}.csv",
         parse_dates=["start_date", "end_date"],
         index_col=0,
         keep_default_na=False,
