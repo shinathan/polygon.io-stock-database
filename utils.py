@@ -46,7 +46,7 @@ def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, colu
         columns (list): list of column names to keep
 
     Returns:
-        DataFrame: the data
+        DataFrame: DataFrame if path=None is specified, the data is non-empty and there is no error in retrieving the data. Else nothing is returned.
     """
     
     # If no time specified, fill in the start of premarket/end of postmarket
@@ -58,18 +58,24 @@ def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, colu
         end_unix = datetime_to_unix(to)
     else:
         raise Exception("No datetime or date object specified.")
-
-    m1 = pd.DataFrame(
-        client.list_aggs(
-            ticker=ticker,
-            multiplier=1,
-            timespan="minute",
-            from_=start_unix,
-            to=end_unix,
-            limit=50000,
-            adjusted=False,
+    
+    try:
+        m1 = pd.DataFrame(
+            client.list_aggs(
+                ticker=ticker,
+                multiplier=1,
+                timespan="minute",
+                from_=start_unix,
+                to=end_unix,
+                limit=50000,
+                adjusted=False,
+            )
         )
-    )
+    except Exception as e:
+        print(ticker)
+        print(e)
+        return
+
     if not m1.empty:
         m1["timestamp"] = pd.to_datetime(
             m1["timestamp"], unit="ms"
@@ -87,7 +93,7 @@ def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, colu
             return m1
 
         if to_parquet:
-            m1.to_parquet(path, engine="pyarrow", compression="brotli")
+            m1.to_parquet(path, engine="fastparquet", compression="snappy", row_group_offsets=25000)
         else:
             m1.to_csv(path)
     else:

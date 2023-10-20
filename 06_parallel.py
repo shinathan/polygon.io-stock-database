@@ -1,8 +1,5 @@
 """
 Downloads 1-minute bars but parallel. Specify the amount of maximum concurrent requests in LIMIT.
-
-Note: The DATA_PATH is different from the Jupyter notebook because a Jupyter notebook has its own kernel
-and hence own location. This can be solved by using absolute paths or removing the ../../
 """
 
 import aiohttp
