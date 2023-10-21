@@ -201,7 +201,7 @@ def remove_extended_hours(bars):
     return bars
 
 
-def get_tickers(v=5):
+def get_tickers(v=5, cik_as_float=True):
     """
     Retrieve the ticker list. Default is 5.
     """
@@ -236,9 +236,10 @@ def get_tickers(v=5):
         tickers["start_data"] = pd.to_datetime(tickers["start_data"]).dt.date
         tickers["end_data"] = pd.to_datetime(tickers["end_data"]).dt.date
 
-    tickers["cik"] = tickers["cik"].apply(
-        lambda str: float(str) if len(str) != 0 else np.nan
-    )
+    if cik_as_float:
+        tickers["cik"] = tickers["cik"].apply(
+            lambda str: float(str) if len(str) != 0 else np.nan
+        )
     return tickers
 
 
