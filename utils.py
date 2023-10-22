@@ -33,20 +33,18 @@ def datetime_to_unix(dt):
         raise Exception("No datetime object specified.")
 
 
-def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, columns=['open', 'high', 'low', 'close', 'volume']):
-    """Downloads raw 1-minute data from Polygon, converts to ET-naive time and store to either a csv file or Parquet file. Includes extended hours.
+def download_m1_raw_data(ticker, from_, to, client, columns=['open', 'high', 'low', 'close', 'volume']):
+    """Downloads raw 1-minute data from Polygon and converts to ET-time. Returns the resulting DataFrame.
 
     Args:
         ticker (str): _description_
         from_ (date/datetime): the starting date(time)
         to (date/datetime): end ending date(time)
-        path (str): where to store the result. If None is specified, the function returns the df instead.
         client (RESTClient): the client object
-        to_parquet (bool, optional): whether to store in Parquet files. Defaults to csv.
         columns (list): list of column names to keep
 
     Returns:
-        DataFrame: DataFrame if path=None is specified, the data is non-empty and there is no error in retrieving the data. Else nothing is returned.
+        DataFrame: the result
     """
     
     # If no time specified, fill in the start of premarket/end of postmarket
@@ -89,13 +87,8 @@ def download_m1_raw_data(ticker, from_, to, path, client, to_parquet=False, colu
         m1.set_index("datetime", inplace=True)
         m1 = m1[columns]
 
-        if path is None:
-            return m1
+        return m1
 
-        if to_parquet:
-            m1.to_parquet(path, engine="fastparquet", compression="snappy", row_group_offsets=25000)
-        else:
-            m1.to_csv(path)
     else:
         print(
             f"There is no data for {ticker} from {from_.isoformat()} to {to.isoformat()}"
@@ -130,7 +123,7 @@ def get_market_calendar():
 
 @lru_cache
 def get_market_minutes():
-    trading_datetimes = pd.read_csv(POLYGON_DATA_PATH + "../other/trading_minutes.csv")
+    trading_datetimes = pd.read_csv(POLYGON_DATA_PATH + "../market/trading_minutes.csv")
     return pd.to_datetime(trading_datetimes["datetime"])
 
 
