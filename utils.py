@@ -142,7 +142,7 @@ def first_trading_date_after_equal(dt):
     """Gets first trading day after or equal to input date. Return the input if out of range.
 
     Args:
-        dt (Date): Date object to compare
+        dt (Date): Date object to compare. Can be a non-trading date.
 
     Returns:
         Date: the trading date
@@ -159,7 +159,7 @@ def last_trading_date_before_equal(dt):
     """Gets last trading day before or equal to input date. Return the input if out of range.
 
     Args:
-        dt (Date): Date object to compare
+        dt (Date): Date object to compare. Can be a non-trading date.
 
     Returns:
         Date: the trading date
@@ -172,6 +172,31 @@ def last_trading_date_before_equal(dt):
         dt = dt - timedelta(days=1)
     return dt
 
+def first_trading_date_after(day):
+    """Gets first trading date after the specified trading date.
+
+    Args:
+        day (date): MUST be a trading date
+    
+    Returns:
+        date: the next trading date
+    """
+    trading_days = get_market_dates()
+    return trading_days[trading_days.index(day) + 1]
+
+
+def last_trading_date_before(day):
+    """Gets last trading date before the specified trading date.
+
+    Args:
+        day (date): MUST be a trading date
+    
+    Returns:
+        date: the previous trading date
+    """
+    trading_days = get_market_dates()
+    return trading_days[trading_days.index(day) - 1]
+    
 
 def remove_extended_hours(bars):
     """
