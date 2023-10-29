@@ -297,7 +297,7 @@ def get_data(
     timeframe="daily",
     regular_hours_only=False,
     location="processed",
-    columns=["open", "high", "low", "close", "volume", "tradeable", "halted"],
+    columns=["open", "high", "low", "close", "close_original", "volume", "tradeable", "halted"],
 ):
     """Retrieves the data from our database
 
