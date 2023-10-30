@@ -148,7 +148,7 @@ def first_trading_date_after_equal(dt):
         Date: the trading date
     """
     trading_days = get_market_dates()
-    if dt > trading_days[-1]:
+    if dt < trading_days[0] or dt >= trading_days[-1]:
         print("Out of range! Returning input.")
         return dt
     while dt not in trading_days:
@@ -165,7 +165,7 @@ def last_trading_date_before_equal(dt):
         Date: the trading date
     """
     trading_days = get_market_dates()
-    if dt < trading_days[-1]:
+    if dt <= trading_days[0] or dt > trading_days[-1]:
         print("Out of range! Returning input.")
         return dt
     while dt not in trading_days:
