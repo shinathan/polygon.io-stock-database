@@ -13,8 +13,6 @@ import numpy as np
 import os
 
 POLYGON_DATA_PATH = "../data/polygon/"
-SHARADAR_DATA_PATH = "../data/sharadar/"
-
 
 def datetime_to_unix(dt):
     """Converts a ET-naive datetime object to msec timestamp
@@ -103,7 +101,7 @@ def get_market_calendar():
         DataFrame: the index contains Date objects and the columns Time objects.
     """
     market_hours = pd.read_csv(
-        POLYGON_DATA_PATH + "../market/market_calendar.csv", index_col=0
+        POLYGON_DATA_PATH + "market/market_calendar.csv", index_col=0
     )
     market_hours.index = pd.to_datetime(market_hours.index).date
     market_hours.premarket_open = pd.to_datetime(
@@ -123,7 +121,7 @@ def get_market_calendar():
 
 @lru_cache
 def get_market_minutes():
-    trading_datetimes = pd.read_csv(POLYGON_DATA_PATH + "../market/trading_minutes.csv")
+    trading_datetimes = pd.read_csv(POLYGON_DATA_PATH + "market/trading_minutes.csv")
     return pd.to_datetime(trading_datetimes["datetime"])
 
 

@@ -1,5 +1,4 @@
 """
-MAY NOT WORK.
 Downloads 1-minute bars but parallel. Specify the amount of maximum concurrent requests in LIMIT.
 """
 
@@ -62,9 +61,10 @@ async def download_data(id, ticker, start_date, end_date, KEY, semaphore):
                 data.set_index(data["datetime"], inplace=True)
                 data = data[["open", "high", "low", "close", "volume"]]
                 data.to_parquet(
-                    DATA_PATH + f"raw/m2/{id}.parquet",
-                    engine="pyarrow",
-                    compression="brotli",
+                    DATA_PATH + f"raw/m1/{id}.parquet",
+                    engine="fastparquet",
+                    compression="snappy",
+                    row_group_offsets=25000,
                 )
 
                 print(id)
@@ -75,7 +75,11 @@ async def main():
     semaphore = asyncio.Semaphore(LIMIT)
 
     tasks = []
-    for index, row in get_tickers(v=3).iterrows():
+    tickers = get_tickers(v=3)
+    tickers = tickers[tickers["type"].isin(["CS", "ADRC", "ETF", "ETN", "ETV"])]
+    tickers.reset_index(inplace=True, drop=True)
+
+    for index, row in tickers.loc[6292:].iterrows():
         id = row["ID"]
         ticker = row["ticker"]
         start_date = datetime_to_unix(datetime.combine(row["start_date"], time(4)))
