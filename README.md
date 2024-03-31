@@ -1,4 +1,4 @@
-# Building a stock database using Polygon
+# Building a stock database using Polygon.io
 *Requirements: Python 3.11.4, a Polygon.io and a stockanalysis.com subscription*
 
 The goal is to create a financial database of 1-minute OHLCV data from 2004 and beyond, delisted or listed, for common stocks and ADR common stocks. I use Polygon for price data, which is "ticker-centric". All data from Polygon is point-in-time by ticker. This means we have to take care of renamings ourselves (very annoying). Some vendors already do renamings (e.g. Tiingo). And almost all of the vendors that do renamings have a small bit of survivorship-bias, because when a ticker is re-used the old data is lost. Polygon does not have this problem.
