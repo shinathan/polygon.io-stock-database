@@ -93,9 +93,12 @@ def download_m1_raw_data(ticker, from_, to, client, columns=['open', 'high', 'lo
         )
 
 
-@lru_cache
-def get_market_calendar():
+def get_market_calendar(format="time", timeframe=1):
     """Retrieves the market hours
+
+    Args:
+        format (string): "time" or "datetime". If datetime, the columns are datetime objects. Else time objects.
+        timeframe (int): the timeframe of the bars in minutes. Defaults to 1.
 
     Returns:
         DataFrame: the index contains Date objects and the columns Time objects.
@@ -104,19 +107,28 @@ def get_market_calendar():
         POLYGON_DATA_PATH + "market/market_calendar.csv", index_col=0
     )
     market_hours.index = pd.to_datetime(market_hours.index).date
-    market_hours.premarket_open = pd.to_datetime(
-        market_hours.premarket_open, format="%H:%M:%S"
-    ).dt.time
-    market_hours.regular_open = pd.to_datetime(
-        market_hours.regular_open, format="%H:%M:%S"
-    ).dt.time
-    market_hours.regular_close = pd.to_datetime(
-        market_hours.regular_close, format="%H:%M:%S"
-    ).dt.time
-    market_hours.postmarket_close = pd.to_datetime(
-        market_hours.postmarket_close, format="%H:%M:%S"
-    ).dt.time
-    return market_hours
+
+    # Get datetime objects from the date and time
+    for col in market_hours.columns:
+        market_hours[col] = pd.to_datetime(
+            market_hours.index.astype(str) + " " + market_hours[col].astype(str)
+        )
+
+    # # Round down if timeframe is not 1 minute
+    market_hours["regular_close"] = market_hours["regular_close"].dt.floor(
+        f"{timeframe}min"
+    )
+    market_hours["postmarket_close"] = market_hours["postmarket_close"].dt.floor(
+        f"{timeframe}min"
+    )
+
+    # Return time only if specified
+    if format == "datetime":
+        return market_hours
+    elif format == "time":
+        for col in market_hours.columns:
+            market_hours[col] = market_hours[col].dt.time
+        return market_hours
 
 
 @lru_cache
