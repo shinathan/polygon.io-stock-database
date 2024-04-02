@@ -1,6 +1,8 @@
 """
-This script has some functions from the notebooks.
+This script has some functions from the notebooks. However after 11_screeners.ipynb, 
+I have divided this file into data.py, tickers.py and times.py.
 """
+
 from polygon.rest import RESTClient
 from datetime import datetime, date, time, timedelta
 from pytz import timezone
@@ -13,6 +15,7 @@ import numpy as np
 import os
 
 POLYGON_DATA_PATH = "../data/polygon/"
+
 
 def datetime_to_unix(dt):
     """Converts a ET-naive datetime object to msec timestamp
@@ -31,7 +34,9 @@ def datetime_to_unix(dt):
         raise Exception("No datetime object specified.")
 
 
-def download_m1_raw_data(ticker, from_, to, client, columns=['open', 'high', 'low', 'close', 'volume']):
+def download_m1_raw_data(
+    ticker, from_, to, client, columns=["open", "high", "low", "close", "volume"]
+):
     """Downloads raw 1-minute data from Polygon and converts to ET-time. Returns the resulting DataFrame.
 
     Args:
@@ -44,7 +49,7 @@ def download_m1_raw_data(ticker, from_, to, client, columns=['open', 'high', 'lo
     Returns:
         DataFrame: the result
     """
-    
+
     # If no time specified, fill in the start of premarket/end of postmarket
     if all(isinstance(value, date) for value in (from_, to)):
         start_unix = datetime_to_unix(dt=datetime.combine(from_, time(4)))
@@ -54,7 +59,7 @@ def download_m1_raw_data(ticker, from_, to, client, columns=['open', 'high', 'lo
         end_unix = datetime_to_unix(to)
     else:
         raise Exception("No datetime or date object specified.")
-    
+
     try:
         m1 = pd.DataFrame(
             client.list_aggs(
@@ -147,7 +152,6 @@ def get_market_dates():
     return list(market_hours.index)
 
 
-
 def first_trading_date_after_equal(dt):
     """Gets first trading day after or equal to input date. Return the input if out of range.
 
@@ -164,6 +168,7 @@ def first_trading_date_after_equal(dt):
     while dt not in trading_days:
         dt = dt + timedelta(days=1)
     return dt
+
 
 def last_trading_date_before_equal(dt):
     """Gets last trading day before or equal to input date. Return the input if out of range.
@@ -182,12 +187,13 @@ def last_trading_date_before_equal(dt):
         dt = dt - timedelta(days=1)
     return dt
 
+
 def first_trading_date_after(day):
     """Gets first trading date after the specified trading date.
 
     Args:
         day (date): MUST be a trading date
-    
+
     Returns:
         date: the next trading date
     """
@@ -200,13 +206,13 @@ def last_trading_date_before(day):
 
     Args:
         day (date): MUST be a trading date
-    
+
     Returns:
         date: the previous trading date
     """
     trading_days = get_market_dates()
     return trading_days[trading_days.index(day) - 1]
-    
+
 
 def remove_extended_hours(bars):
     """
@@ -307,7 +313,16 @@ def get_data(
     timeframe="daily",
     regular_hours_only=False,
     location="processed",
-    columns=["open", "high", "low", "close", "close_original", "volume", "tradeable", "halted"],
+    columns=[
+        "open",
+        "high",
+        "low",
+        "close",
+        "close_original",
+        "volume",
+        "tradeable",
+        "halted",
+    ],
 ):
     """Retrieves the data from our database
 
