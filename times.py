@@ -17,7 +17,7 @@ def get_market_calendar(format="time", timeframe=1):
         DataFrame: the index contains Date objects and the columns Time objects.
     """
     market_hours = pd.read_csv(
-        POLYGON_DATA_PATH + "../market/market_calendar.csv", index_col=0
+        POLYGON_DATA_PATH + "market/market_calendar.csv", index_col=0
     )
     market_hours.index = pd.to_datetime(market_hours.index).date
 
@@ -44,7 +44,7 @@ def get_market_calendar(format="time", timeframe=1):
         return market_hours
 
 @lru_cache
-def get_market_dates(start_date, end_date):
+def get_market_dates(start_date=date(2000, 1, 1), end_date=date(2100, 1, 1)):
     """Get a list of market days from the market calendar
 
     Args:
@@ -74,7 +74,7 @@ def get_market_minutes(start_date, end_date, extended_hours=True, timeframe=1):
         DatetimeIndex: the result
     """
     trading_datetimes = pd.read_parquet(
-        POLYGON_DATA_PATH + "../market/trading_minutes.parquet"
+        POLYGON_DATA_PATH + "market/trading_minutes.parquet"
     )
     trading_datetimes = pd.to_datetime(trading_datetimes.index)
     trading_datetimes = pd.DataFrame(index=trading_datetimes)
