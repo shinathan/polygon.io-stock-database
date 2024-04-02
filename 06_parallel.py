@@ -5,11 +5,11 @@ Downloads 1-minute bars but parallel. Specify the amount of maximum concurrent r
 import aiohttp
 import asyncio
 import pandas as pd
-import numpy as np
 from polygon.rest import RESTClient
 from datetime import datetime, time
 import pytz
-from utils import datetime_to_unix, get_tickers
+from tickers import get_tickers
+from data import datetime_to_unix
 
 DATA_PATH = "../data/polygon/"
 

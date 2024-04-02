@@ -2,6 +2,9 @@ import pyarrow.parquet as pq
 from datetime import datetime, date, time, timedelta
 from tickers import get_id
 from times import get_market_calendar
+import pandas as pd
+import pytz
+from pytz import timezone
 
 POLYGON_DATA_PATH = "../data/polygon/"
 
@@ -92,3 +95,83 @@ def get_data(
         return remove_extended_hours(df)
     else:
         return df
+
+def datetime_to_unix(dt):
+    """Converts a ET-naive datetime object to msec timestamp
+
+    Args:
+        dt (datetime): datetime to convert
+
+    Returns:
+        int: Unix millisecond timestamp
+    """
+
+    if isinstance(dt, datetime):
+        time_ET = timezone("US/Eastern").localize(dt)
+        return int(time_ET.timestamp() * 1000)
+    else:
+        raise Exception("No datetime object specified.")
+
+
+def download_m1_raw_data(
+    ticker, from_, to, client, columns=["open", "high", "low", "close", "volume"]
+):
+    """Downloads raw 1-minute data from Polygon and converts to ET-time. Returns the resulting DataFrame.
+
+    Args:
+        ticker (str): _description_
+        from_ (date/datetime): the starting date(time)
+        to (date/datetime): end ending date(time)
+        client (RESTClient): the client object
+        columns (list): list of column names to keep
+
+    Returns:
+        DataFrame: the result
+    """
+
+    # If no time specified, fill in the start of premarket/end of postmarket
+    if all(isinstance(value, date) for value in (from_, to)):
+        start_unix = datetime_to_unix(dt=datetime.combine(from_, time(4)))
+        end_unix = datetime_to_unix(dt=datetime.combine(to, time(20)))
+    elif all(isinstance(value, datetime) for value in (from_, to)):
+        start_unix = datetime_to_unix(from_)
+        end_unix = datetime_to_unix(to)
+    else:
+        raise Exception("No datetime or date object specified.")
+
+    try:
+        m1 = pd.DataFrame(
+            client.list_aggs(
+                ticker=ticker,
+                multiplier=1,
+                timespan="minute",
+                from_=start_unix,
+                to=end_unix,
+                limit=50000,
+                adjusted=False,
+            )
+        )
+    except Exception as e:
+        print(ticker)
+        print(e)
+        return
+
+    if not m1.empty:
+        m1["timestamp"] = pd.to_datetime(
+            m1["timestamp"], unit="ms"
+        )  # Convert timestamp to UTC
+        m1.rename(columns={"timestamp": "datetime"}, inplace=True)
+        m1["datetime"] = m1["datetime"].dt.tz_localize(
+            pytz.UTC
+        )  # Make UTC aware (in order to convert)
+        m1["datetime"] = m1["datetime"].dt.tz_convert("US/Eastern")  # Convert UTC to ET
+        m1["datetime"] = m1["datetime"].dt.tz_localize(None)  # Make timezone naive
+        m1.set_index("datetime", inplace=True)
+        m1 = m1[columns]
+
+        return m1
+
+    else:
+        print(
+            f"There is no data for {ticker} from {from_.isoformat()} to {to.isoformat()}"
+        )
