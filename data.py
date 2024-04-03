@@ -43,9 +43,8 @@ def get_data(
         "low",
         "close",
         "close_original",
-        "volume",
+        "turnover",
         "tradeable",
-        "halted",
     ],
 ):
     """Retrieves the data from our database
