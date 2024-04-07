@@ -3,7 +3,8 @@ import pandas as pd
 
 
 class Portfolio:
-    def __init__(self, start_date, initial_capital=10000.0):
+    def __init__(self, start_date, data, initial_capital=10000.0):
+        self.data = data
 
         # Positions only change with a fill. Positions = amount of assets.
         self.current_cash = initial_capital
@@ -62,11 +63,11 @@ class Portfolio:
             }
         )
 
-    def _update_holdings_from_market(self, dt, data):
-        # Update holdings if we have positions (and data)
-        if data and self.current_positions:
+    def _update_holdings_from_market(self, dt):
+        # Update holdings if we have positions
+        if self.data and self.current_positions:
             position_values = {
-                symbol: position * (data[symbol].loc[dt, "close"])
+                symbol: position * (self.data[symbol].loc[dt, "close"])
                 for (symbol, position) in self.current_positions.items()
                 if position != 0
             }
@@ -77,9 +78,10 @@ class Portfolio:
         # Update equity
         self._current_equity = self.current_cash + self._current_positions_value
 
-    def append_portfolio_log(self, dt, data):
-        # Update holdings and append portfolio log
-        self._update_holdings_from_market(dt, data)
+    def append_portfolio_log(self, dt):
+        # Update holdings, append portfolio and remove empty positions
+        self.current_positions = {k:v for k,v in self.current_positions.items() if v != 0}
+        self._update_holdings_from_market(dt)
 
         self.portfolio_log.append(
             {
