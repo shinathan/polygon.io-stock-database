@@ -1,9 +1,10 @@
 import pandas as pd
 import os
+from functools import lru_cache
 
 POLYGON_DATA_PATH = "../data/polygon/"
 
-
+@lru_cache
 def get_tickers(v=5):
     """
     Retrieve the ticker list. Default is 5.

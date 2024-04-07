@@ -71,7 +71,7 @@ def calculate_drawdowns(portfolio_log):
 
 
 def fills_to_trades(fills_log):
-    """Converts the fills log to a trade log
+    """Converts the fills log to a trade log. The explanation of this code is given in my other repo.
 
     Args:
         fills (DataFrame): the fills log
