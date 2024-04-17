@@ -159,3 +159,4 @@ def last_trading_date_before(day):
     """
     trading_days = get_market_dates()
     return trading_days[trading_days.index(day) - 1]
+

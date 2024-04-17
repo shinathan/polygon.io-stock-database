@@ -174,3 +174,13 @@ def download_m1_raw_data(
         print(
             f"There is no data for {ticker} from {from_.isoformat()} to {to.isoformat()}"
         )
+
+def get_latest_value(dictionary, day):
+    """Get the value corresponding to the latest key before <day> in a dictionary"""
+    dates = [date.fromisoformat(day) for day in dictionary.keys()]
+    try:
+        key = max(filter(lambda x: x < day, dates))
+    except ValueError:
+        # If there is no universe before <day>, simply pick the first one.
+        key = dates[0]
+    return dictionary[key.isoformat()]

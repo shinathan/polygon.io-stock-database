@@ -4,8 +4,7 @@ from functools import lru_cache
 
 POLYGON_DATA_PATH = "../data/polygon/"
 
-@lru_cache
-def get_tickers(v=5):
+def get_tickers(v=5, types=['CS', 'ADRC', 'ETF', 'ETV', 'ETN', 'INDEX']):
     """
     Retrieve the ticker list. Default is 5.
     """
@@ -40,7 +39,7 @@ def get_tickers(v=5):
         tickers["start_data"] = pd.to_datetime(tickers["start_data"]).dt.date
         tickers["end_data"] = pd.to_datetime(tickers["end_data"]).dt.date
 
-    return tickers
+    return tickers[tickers['type'].isin(types)]
 
 
 def get_ticker_changes():
