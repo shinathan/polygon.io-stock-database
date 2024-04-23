@@ -4,7 +4,7 @@ from functools import lru_cache
 
 POLYGON_DATA_PATH = "../data/polygon/"
 
-def get_tickers(v=5, types=['CS', 'ADRC', 'ETF', 'ETV', 'ETN', 'INDEX']):
+def get_tickers(v=5, types=['CS', 'ADRC', 'ETF']):
     """
     Retrieve the ticker list. Default is 5.
     """

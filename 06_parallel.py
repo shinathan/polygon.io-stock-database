@@ -40,46 +40,46 @@ async def download_data(id, ticker, start_date, end_date, KEY, semaphore):
                     url = response.get("next_url") + f"&apiKey={KEY}"
                 else:
                     url = False
+            if data is not None:
+                if len(data) > 0:
+                    data = pd.DataFrame(data)
+                    data.rename(
+                        columns={
+                            "t": "datetime",
+                            "o": "open",
+                            "h": "high",
+                            "l": "low",
+                            "c": "close",
+                            "v": "volume",
+                        },
+                        inplace=True,
+                    )
+                    data["datetime"] = pd.to_datetime(data["datetime"], unit="ms")
+                    data["datetime"] = data["datetime"].dt.tz_localize(pytz.UTC)
+                    data["datetime"] = data["datetime"].dt.tz_convert("US/Eastern")
+                    data["datetime"] = data["datetime"].dt.tz_localize(None)
+                    data.set_index(data["datetime"], inplace=True)
+                    data = data[["open", "high", "low", "close", "volume"]]
+                    data.to_parquet(
+                        DATA_PATH + f"raw/m1/{id}.parquet",
+                        engine="fastparquet",
+                        compression="snappy",
+                        row_group_offsets=25000,
+                    )
 
-            if len(data) > 0:
-                data = pd.DataFrame(data)
-                data.rename(
-                    columns={
-                        "t": "datetime",
-                        "o": "open",
-                        "h": "high",
-                        "l": "low",
-                        "c": "close",
-                        "v": "volume",
-                    },
-                    inplace=True,
-                )
-                data["datetime"] = pd.to_datetime(data["datetime"], unit="ms")
-                data["datetime"] = data["datetime"].dt.tz_localize(pytz.UTC)
-                data["datetime"] = data["datetime"].dt.tz_convert("US/Eastern")
-                data["datetime"] = data["datetime"].dt.tz_localize(None)
-                data.set_index(data["datetime"], inplace=True)
-                data = data[["open", "high", "low", "close", "volume"]]
-                data.to_parquet(
-                    DATA_PATH + f"raw/m1/{id}.parquet",
-                    engine="fastparquet",
-                    compression="snappy",
-                    row_group_offsets=25000,
-                )
-
-                print(id)
+                    print(id)
 
 
 async def main():
-    LIMIT = 5  # Set your desired maximum parallel requests limit
+    LIMIT = 2  # Set your desired maximum parallel requests limit
     semaphore = asyncio.Semaphore(LIMIT)
 
     tasks = []
     tickers = get_tickers(v=3)
-    tickers = tickers[tickers["type"].isin(["CS", "ADRC", "ETF", "ETN", "ETV"])]
+    tickers = tickers[tickers["type"].isin(["CS", "ADRC", "ETF"])]
     tickers.reset_index(inplace=True, drop=True)
 
-    for index, row in tickers.loc[6292:].iterrows():
+    for index, row in tickers.iloc[475:].iterrows():
         id = row["ID"]
         ticker = row["ticker"]
         start_date = datetime_to_unix(datetime.combine(row["start_date"], time(4)))
