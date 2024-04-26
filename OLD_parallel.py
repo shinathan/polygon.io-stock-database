@@ -1,4 +1,5 @@
 """
+OLD CODE: we now use flatfiles.
 Downloads 1-minute bars but parallel. Specify the amount of maximum concurrent requests in LIMIT.
 """
 
