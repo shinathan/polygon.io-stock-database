@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 from functools import lru_cache
 
 POLYGON_DATA_PATH = "../data/polygon/"
@@ -38,6 +39,10 @@ def get_tickers(v=5, types=['CS', 'ADRC', 'ETF']):
     if tickers.columns.isin(["start_data", "end_data"]).any():
         tickers["start_data"] = pd.to_datetime(tickers["start_data"]).dt.date
         tickers["end_data"] = pd.to_datetime(tickers["end_data"]).dt.date
+
+    tickers["cik"] = tickers["cik"].apply(
+            lambda str: float(str) if len(str) != 0 else np.nan
+        )
 
     return tickers[tickers['type'].isin(types)]
 
