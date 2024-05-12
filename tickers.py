@@ -5,9 +5,9 @@ from functools import lru_cache
 
 POLYGON_DATA_PATH = "../data/polygon/"
 
-def get_tickers(v=5, types=['CS', 'ADRC', 'ETF']):
+def get_tickers(v=4, types=['CS', 'ADRC', 'ETF']):
     """
-    Retrieve the ticker list. Default is 5.
+    Retrieve the ticker list. Default is 4.
     """
     tickers = pd.read_csv(
         f"../data/tickers_v{v}.csv",
